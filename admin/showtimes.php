@@ -70,23 +70,40 @@ $current_admin_page = 'showtimes';
 require_once __DIR__ . '/partials/admin-header.php';
 ?>
 
-<div class="d-flex" style="min-height:calc(100vh - 60px)">
+<div class="cb-admin-layout">
     <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
-    <main class="flex-grow-1 p-4">
+    <main class="cb-admin-main">
+        <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="text-white fw-bold mb-0"><i class="bi bi-calendar-week me-2 text-warning"></i>Showtimes</h2>
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--cb-text)">
+                    <i class="bi bi-calendar-week me-2" style="color:var(--cb-text)"></i>Showtimes
+                </h2>
+                <p class="text-muted-cb mb-0" style="font-size:.875rem"><?= count($showtimes) ?> total showtimes</p>
+            </div>
             <button class="btn btn-cb-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stForm">
-                <i class="bi bi-plus-circle me-1"></i>Add Showtime
+                <i class="bi bi-plus-circle me-1"></i><?= $editing ? 'Edit Showtime' : 'Add Showtime' ?>
             </button>
         </div>
 
-        <?php if ($success): ?><div class="cb-alert-success mb-3" data-auto-dismiss="4000"><i class="bi bi-check-circle me-2"></i><?= sanitize($success) ?></div><?php endif; ?>
-        <?php if ($error):   ?><div class="cb-alert-danger  mb-3"><i class="bi bi-exclamation-triangle me-2"></i><?= sanitize($error) ?></div><?php endif; ?>
+        <?php if ($success): ?>
+        <div class="cb-alert-success mb-3" data-auto-dismiss="4000">
+            <i class="bi bi-check-circle-fill"></i><?= sanitize($success) ?>
+        </div>
+        <?php endif; ?>
+        <?php if ($error): ?>
+        <div class="cb-alert-danger mb-3">
+            <i class="bi bi-exclamation-circle-fill"></i><?= sanitize($error) ?>
+        </div>
+        <?php endif; ?>
 
         <!-- Form -->
         <div class="collapse <?= ($editing || $error) ? 'show' : '' ?> mb-4" id="stForm">
             <div class="cb-card">
-                <div class="card-header"><?= $editing ? 'Edit Showtime' : 'Add Showtime' ?></div>
+                <div class="card-header">
+                    <i class="bi bi-<?= $editing ? 'pencil' : 'plus-circle' ?> me-2" style="color:var(--cb-text)"></i>
+                    <?= $editing ? 'Edit Showtime' : 'Add Showtime' ?>
+                </div>
                 <div class="p-4">
                     <form method="POST">
                         <?php if ($editing): ?><input type="hidden" name="edit_id" value="<?= $editing['id'] ?>"><?php endif; ?>
@@ -127,12 +144,12 @@ require_once __DIR__ . '/partials/admin-header.php';
                                        min="1000" step="1000"
                                        value="<?= (int)($editing['price'] ?? 55000) ?>" required>
                             </div>
-                            <div class="col-12">
+                            <div class="col-12 d-flex gap-2">
                                 <button type="submit" class="btn btn-cb-primary">
                                     <i class="bi bi-save me-1"></i><?= $editing ? 'Update' : 'Save' ?>
                                 </button>
                                 <?php if ($editing): ?>
-                                <a href="<?= BASE_URL ?>/admin/showtimes.php" class="btn btn-outline-secondary ms-2">Cancel</a>
+                                <a href="<?= BASE_URL ?>/admin/showtimes.php" class="btn btn-cb-secondary">Cancel</a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -143,36 +160,47 @@ require_once __DIR__ . '/partials/admin-header.php';
 
         <!-- Table -->
         <div class="cb-card">
-            <div class="card-header">All Showtimes (<?= count($showtimes) ?>)</div>
+            <div class="card-header">
+                <strong>All Showtimes</strong>
+                <span class="text-muted-cb ms-1" style="font-size:.8rem">(<?= count($showtimes) ?>)</span>
+            </div>
             <div class="table-responsive">
                 <table class="table cb-table mb-0">
-                    <thead><tr>
-                        <th>#</th><th>Movie</th><th>Date</th><th>Time</th><th>Hall</th><th>Price</th><th>Actions</th>
-                    </tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th><th>Movie</th><th>Date</th><th>Time</th><th>Hall</th><th>Price</th><th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody>
+                        <?php if (empty($showtimes)): ?>
+                        <tr><td colspan="7" class="text-center py-4 text-muted-cb">No showtimes found.</td></tr>
+                        <?php else: ?>
                         <?php foreach ($showtimes as $st): ?>
                         <tr>
-                            <td class="text-muted-cb"><?= $st['id'] ?></td>
-                            <td class="text-white"><?= sanitize($st['movie_title']) ?></td>
+                            <td style="color:var(--cb-text-muted);font-size:.82rem"><?= $st['id'] ?></td>
+                            <td style="font-weight:600"><?= sanitize($st['movie_title']) ?></td>
                             <td><?= date('d M Y', strtotime($st['show_date'])) ?></td>
-                            <td><?= date('H:i', strtotime($st['show_time'])) ?></td>
+                            <td style="font-weight:600"><?= date('H:i', strtotime($st['show_time'])) ?></td>
                             <td><?= sanitize($st['hall']) ?></td>
-                            <td class="text-warning"><?= formatPrice($st['price']) ?></td>
+                            <td style="font-weight:700;color:var(--cb-text)"><?= formatPrice($st['price']) ?></td>
                             <td>
-                                <a href="?action=edit&id=<?= $st['id'] ?>" class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form id="del-st-<?= $st['id'] ?>" method="GET" style="display:inline">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="id" value="<?= $st['id'] ?>">
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                            onclick="confirmDelete('del-st-<?= $st['id'] ?>', 'Delete this showtime?')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="d-flex gap-1">
+                                    <a href="?action=edit&id=<?= $st['id'] ?>" class="btn btn-cb-secondary btn-sm py-1 px-2">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form id="del-st-<?= $st['id'] ?>" method="GET" style="display:inline">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="<?= $st['id'] ?>">
+                                        <button type="button" class="btn btn-sm py-1 px-2" style="background:#FEF2F2;border:1px solid #FECACA;color:var(--cb-danger)"
+                                                onclick="confirmDelete('del-st-<?= $st['id'] ?>', 'Delete this showtime?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

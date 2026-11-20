@@ -66,58 +66,105 @@ $current_admin_page = 'bookings';
 require_once __DIR__ . '/partials/admin-header.php';
 ?>
 
-<div class="d-flex" style="min-height:calc(100vh - 60px)">
+<div class="cb-admin-layout">
     <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
-    <main class="flex-grow-1 p-4">
-        <h2 class="text-white fw-bold mb-4"><i class="bi bi-ticket-perforated me-2 text-warning"></i>Bookings</h2>
+    <main class="cb-admin-main">
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h2 class="fw-bold mb-1" style="color:var(--cb-text)">
+                <i class="bi bi-ticket-perforated me-2" style="color:var(--cb-text)"></i>Bookings
+            </h2>
+            <p class="text-muted-cb mb-0" style="font-size:.875rem"><?= $total ?> booking<?= $total !== 1 ? 's' : '' ?> found</p>
+        </div>
 
-        <?php if ($success): ?><div class="cb-alert-success mb-3" data-auto-dismiss="4000"><i class="bi bi-check-circle me-2"></i><?= sanitize($success) ?></div><?php endif; ?>
+        <?php if ($success): ?>
+        <div class="cb-alert-success mb-3" data-auto-dismiss="4000">
+            <i class="bi bi-check-circle-fill"></i><?= sanitize($success) ?>
+        </div>
+        <?php endif; ?>
 
         <!-- Filters -->
-        <form method="GET" class="row g-2 mb-4">
-            <div class="col-md-5">
-                <input type="text" name="search" class="form-control cb-form-control"
-                       placeholder="Search code, user, movie..." value="<?= sanitize($search) ?>">
+        <div class="cb-card mb-4">
+            <div class="p-3">
+                <form method="GET" class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="cb-label">Search</label>
+                        <div class="input-group">
+                            <span class="input-group-text cb-ig-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" class="form-control cb-form-control"
+                                   placeholder="Search code, user, movie..." value="<?= sanitize($search) ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="cb-label">Status</label>
+                        <select name="status" class="form-select cb-form-control">
+                            <option value="">All Status</option>
+                            <option value="confirmed" <?= $fStatus==='confirmed' ? 'selected':'' ?>>Confirmed</option>
+                            <option value="pending"   <?= $fStatus==='pending'   ? 'selected':'' ?>>Pending</option>
+                            <option value="cancelled" <?= $fStatus==='cancelled' ? 'selected':'' ?>>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-cb-primary w-100">
+                            <i class="bi bi-search me-1"></i>Filter
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="<?= BASE_URL ?>/admin/bookings.php" class="btn btn-cb-secondary w-100">
+                            <i class="bi bi-x-lg me-1"></i>Reset
+                        </a>
+                    </div>
+                </form>
             </div>
-            <div class="col-md-3">
-                <select name="status" class="form-select cb-form-control">
-                    <option value="">All Status</option>
-                    <option value="confirmed" <?= $fStatus==='confirmed' ? 'selected':'' ?>>Confirmed</option>
-                    <option value="pending"   <?= $fStatus==='pending'   ? 'selected':'' ?>>Pending</option>
-                    <option value="cancelled" <?= $fStatus==='cancelled' ? 'selected':'' ?>>Cancelled</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-cb-primary w-100">Filter</button>
-            </div>
-            <div class="col-md-2">
-                <a href="<?= BASE_URL ?>/admin/bookings.php" class="btn btn-outline-secondary w-100">Reset</a>
-            </div>
-        </form>
+        </div>
 
         <!-- Table -->
         <div class="cb-card">
-            <div class="card-header">Total: <?= $total ?> booking(s)</div>
+            <div class="card-header">
+                <strong>All Bookings</strong>
+                <span class="text-muted-cb ms-1" style="font-size:.8rem">(<?= $total ?>)</span>
+            </div>
             <div class="table-responsive">
                 <table class="table cb-table mb-0">
-                    <thead><tr>
-                        <th>Code</th><th>User</th><th>Movie</th><th>Show</th><th>Seats</th><th>Total</th><th>Status</th><th>Action</th>
-                    </tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>User</th>
+                            <th>Movie</th>
+                            <th>Show</th>
+                            <th>Seats</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Update</th>
+                        </tr>
+                    </thead>
                     <tbody>
+                        <?php if (empty($bookings)): ?>
+                        <tr><td colspan="8" class="text-center py-4 text-muted-cb">No bookings found.</td></tr>
+                        <?php else: ?>
                         <?php foreach ($bookings as $b): ?>
                         <tr>
-                            <td class="font-monospace text-warning small"><?= sanitize($b['booking_code']) ?></td>
                             <td>
-                                <div class="text-white small fw-semibold"><?= sanitize($b['user_name']) ?></div>
-                                <div class="text-muted-cb" style="font-size:.7rem"><?= sanitize($b['user_email']) ?></div>
+                                <span style="font-family:monospace;font-size:.82rem;font-weight:700;color:var(--cb-text)">
+                                    <?= sanitize($b['booking_code']) ?>
+                                </span>
                             </td>
-                            <td class="text-white small"><?= sanitize($b['movie_title']) ?></td>
-                            <td class="small text-muted-cb">
+                            <td>
+                                <div style="font-weight:600;font-size:.875rem"><?= sanitize($b['user_name']) ?></div>
+                                <div style="font-size:.72rem;color:var(--cb-muted)"><?= sanitize($b['user_email']) ?></div>
+                            </td>
+                            <td style="font-size:.85rem;max-width:140px">
+                                <span class="d-block" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    <?= sanitize($b['movie_title']) ?>
+                                </span>
+                            </td>
+                            <td style="font-size:.82rem;color:var(--cb-muted)">
                                 <?= date('d M', strtotime($b['show_date'])) ?><br>
-                                <?= date('H:i', strtotime($b['show_time'])) ?> — <?= sanitize($b['hall']) ?>
+                                <span style="color:var(--cb-text);font-weight:600"><?= date('H:i', strtotime($b['show_time'])) ?></span>
+                                — <?= sanitize($b['hall']) ?>
                             </td>
-                            <td class="text-center"><?= $b['total_seats'] ?></td>
-                            <td class="text-warning"><?= formatPrice($b['total_price']) ?></td>
+                            <td style="text-align:center;font-weight:700"><?= $b['total_seats'] ?></td>
+                            <td style="font-weight:700;color:var(--cb-text)"><?= formatPrice($b['total_price']) ?></td>
                             <td><span class="status-<?= $b['status'] ?>"><?= ucfirst($b['status']) ?></span></td>
                             <td>
                                 <form method="POST" class="d-inline-flex gap-1 align-items-center">
@@ -127,26 +174,29 @@ require_once __DIR__ . '/partials/admin-header.php';
                                         <option value="pending"   <?= $b['status']==='pending'  ?'selected':''?>>Pending</option>
                                         <option value="cancelled" <?= $b['status']==='cancelled'?'selected':''?>>Cancelled</option>
                                     </select>
-                                    <button class="btn btn-sm btn-outline-primary py-1 px-2">
+                                    <button class="btn btn-cb-secondary btn-sm py-1 px-2">
                                         <i class="bi bi-check2"></i>
                                     </button>
                                 </form>
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
             <!-- Pagination -->
             <?php if ($totalPages > 1): ?>
-            <div class="p-3">
-                <nav><ul class="pagination pagination-sm mb-0 justify-content-end">
-                    <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                    <li class="page-item <?= $p===$page?'active':'' ?>">
-                        <a class="page-link" href="?page=<?= $p ?>&search=<?= urlencode($search) ?>&status=<?= urlencode($fStatus) ?>"><?= $p ?></a>
-                    </li>
-                    <?php endfor; ?>
-                </ul></nav>
+            <div class="p-3 d-flex justify-content-end">
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                        <li class="page-item <?= $p===$page?'active':'' ?>">
+                            <a class="page-link" href="?page=<?= $p ?>&search=<?= urlencode($search) ?>&status=<?= urlencode($fStatus) ?>"><?= $p ?></a>
+                        </li>
+                        <?php endfor; ?>
+                    </ul>
+                </nav>
             </div>
             <?php endif; ?>
         </div>

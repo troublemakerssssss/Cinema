@@ -28,80 +28,153 @@ $page_title = 'Admin Dashboard';
 require_once __DIR__ . '/partials/admin-header.php';
 ?>
 
-<div class="d-flex" style="min-height:calc(100vh - 60px)">
+<div class="cb-admin-layout">
     <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="flex-grow-1 p-4">
+    <main class="cb-admin-main">
+        <!-- Page Header -->
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h2 class="text-white fw-bold mb-1">Dashboard</h2>
-                <p class="text-muted-cb mb-0">Welcome, <?= sanitize($_SESSION['name']) ?>!</p>
+                <h2 class="fw-bold mb-1" style="color:var(--cb-text)">Dashboard</h2>
+                <p class="text-muted-cb mb-0" style="font-size:.875rem">
+                    Welcome back, <strong><?= sanitize($_SESSION['name']) ?></strong> —
+                    <span><?= date('l, d F Y') ?></span>
+                </p>
             </div>
-            <span class="text-muted-cb small"><i class="bi bi-calendar me-1"></i><?= date('l, d F Y') ?></span>
         </div>
 
-        <!-- Stat Cards -->
+        <!-- Stat Cards (Reference 4) -->
         <div class="row g-3 mb-4">
             <div class="col-md-3 col-6">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(26,115,232,.2);color:#6eb4ff"><i class="bi bi-camera-reels-fill"></i></div>
+                    <div class="stat-icon" style="background:var(--cb-section);color:var(--cb-text)">
+                        <i class="bi bi-camera-reels-fill"></i>
+                    </div>
                     <div>
                         <div class="stat-value"><?= $stats['movies'] ?></div>
-                        <div class="stat-label">Movies</div>
+                        <div class="stat-label">Total Movies</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(76,175,80,.15);color:#81c784"><i class="bi bi-people-fill"></i></div>
+                    <div class="stat-icon" style="background:#EBF7EE;color:var(--cb-success)">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
                     <div>
                         <div class="stat-value"><?= $stats['users'] ?></div>
-                        <div class="stat-label">Users</div>
+                        <div class="stat-label">Registered Users</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(156,39,176,.15);color:#ce93d8"><i class="bi bi-ticket-perforated-fill"></i></div>
+                    <div class="stat-icon" style="background:var(--cb-section);color:var(--cb-text)">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                    </div>
                     <div>
                         <div class="stat-value"><?= $stats['bookings'] ?></div>
-                        <div class="stat-label">Bookings</div>
+                        <div class="stat-label">Total Bookings</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(249,168,37,.15);color:var(--cb-warn)"><i class="bi bi-cash-stack"></i></div>
+                    <div class="stat-icon" style="background:var(--cb-section);color:var(--cb-text)">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
                     <div>
-                        <div class="stat-value" style="font-size:1rem"><?= formatPrice($stats['revenue']) ?></div>
-                        <div class="stat-label">Revenue</div>
+                        <div class="stat-value" style="font-size:1.15rem;padding-top:.25rem"><?= formatPrice($stats['revenue']) ?></div>
+                        <div class="stat-label">Total Revenue</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <a href="<?= BASE_URL ?>/admin/movies.php?action=add" class="cb-card p-3 text-decoration-none d-flex align-items-center gap-3">
+                    <div style="width:38px;height:38px;background:var(--cb-section);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--cb-text);font-size:1rem;flex-shrink:0">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </div>
+                    <span style="font-size:.85rem;font-weight:600;color:var(--cb-text)">Add Movie</span>
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="<?= BASE_URL ?>/admin/showtimes.php" class="cb-card p-3 text-decoration-none d-flex align-items-center gap-3">
+                    <div style="width:38px;height:38px;background:var(--cb-section);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--cb-text);font-size:1rem;flex-shrink:0">
+                        <i class="bi bi-calendar-plus-fill"></i>
+                    </div>
+                    <span style="font-size:.85rem;font-weight:600;color:var(--cb-text)">Add Showtime</span>
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="<?= BASE_URL ?>/admin/bookings.php" class="cb-card p-3 text-decoration-none d-flex align-items-center gap-3">
+                    <div style="width:38px;height:38px;background:var(--cb-section);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--cb-text);font-size:1rem;flex-shrink:0">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                    </div>
+                    <span style="font-size:.85rem;font-weight:600;color:var(--cb-text)">Bookings</span>
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="<?= BASE_URL ?>/admin/users.php" class="cb-card p-3 text-decoration-none d-flex align-items-center gap-3">
+                    <div style="width:38px;height:38px;background:var(--cb-section);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--cb-text);font-size:1rem;flex-shrink:0">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span style="font-size:.85rem;font-weight:600;color:var(--cb-text)">Users</span>
+                </a>
             </div>
         </div>
 
         <!-- Recent Bookings -->
         <div class="cb-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-clock-history me-2 text-warning"></i>Recent Bookings</span>
-                <a href="<?= BASE_URL ?>/admin/bookings.php" class="btn btn-sm btn-outline-primary">View All</a>
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>
+                    <i class="bi bi-clock-history me-2" style="color:var(--cb-text)"></i>
+                    <strong>Recent Bookings</strong>
+                </span>
+                <a href="<?= BASE_URL ?>/admin/bookings.php" class="btn btn-cb-secondary btn-sm">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
             </div>
             <div class="table-responsive">
                 <table class="table cb-table mb-0">
-                    <thead><tr>
-                        <th>Code</th><th>User</th><th>Movie</th><th>Total</th><th>Status</th><th>Date</th>
-                    </tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>User</th>
+                            <th>Movie</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
                     <tbody>
+                        <?php if (empty($recentBookings)): ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted-cb">No bookings yet.</td>
+                        </tr>
+                        <?php else: ?>
                         <?php foreach ($recentBookings as $b): ?>
                         <tr>
-                            <td class="font-monospace text-warning small"><?= sanitize($b['booking_code']) ?></td>
-                            <td><?= sanitize($b['user_name']) ?></td>
-                            <td><?= sanitize($b['movie_title']) ?></td>
-                            <td class="text-warning"><?= formatPrice($b['total_price']) ?></td>
+                            <td>
+                                <span style="font-family:monospace;font-size:.82rem;font-weight:700;color:var(--cb-text)">
+                                    <?= sanitize($b['booking_code']) ?>
+                                </span>
+                            </td>
+                            <td style="font-weight:600"><?= sanitize($b['user_name']) ?></td>
+                            <td style="max-width:160px">
+                                <span class="d-block" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    <?= sanitize($b['movie_title']) ?>
+                                </span>
+                            </td>
+                            <td style="font-weight:700;color:var(--cb-text)"><?= formatPrice($b['total_price']) ?></td>
                             <td><span class="status-<?= $b['status'] ?>"><?= ucfirst($b['status']) ?></span></td>
-                            <td class="small text-muted-cb"><?= date('d M Y H:i', strtotime($b['created_at'])) ?></td>
+                            <td style="color:var(--cb-muted);font-size:.82rem"><?= date('d M Y H:i', strtotime($b['created_at'])) ?></td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

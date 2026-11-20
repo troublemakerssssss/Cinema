@@ -33,108 +33,187 @@ foreach ($allShowtimes as $st) {
     $showtimesByDate[$st['show_date']][] = $st;
 }
 
-// First available date
-$firstDate = $allShowtimes[0]['show_date'] ?? null;
-
 $page_title   = sanitize($movie['title']);
 $current_page = 'movies';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
+<!-- Breadcrumb -->
+<div style="background:var(--cb-white);border-bottom:1px solid var(--cb-border)">
+    <div class="container py-3">
+        <nav style="font-size:.82rem;" aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider: '›';">
+                <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/index.php" style="color:var(--cb-text-muted)">Home</a></li>
+                <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/movies.php" style="color:var(--cb-text-muted)">Movies</a></li>
+                <li class="breadcrumb-item active" style="color:var(--cb-text)"><?= sanitize($movie['title']) ?></li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
 <div class="container py-5">
-    <!-- Back -->
-    <a href="<?= BASE_URL ?>/movies.php" class="btn btn-sm btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-1"></i>Back to Movies
-    </a>
-
-    <div class="row g-4">
-        <!-- Poster -->
+    <div class="row g-5">
+        <!-- ========================
+             LEFT: POSTER
+             ======================== -->
         <div class="col-md-3 text-center text-md-start">
-            <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($movie['poster']) ?>"
-                 onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
-                 alt="<?= sanitize($movie['title']) ?>"
-                 class="poster-detail img-fluid">
-        </div>
+            <div style="position:sticky;top:84px">
+                <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($movie['poster']) ?>"
+                     onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
+                     alt="<?= sanitize($movie['title']) ?>"
+                     class="poster-detail img-fluid">
 
-        <!-- Info -->
-        <div class="col-md-9">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <span class="cb-badge-rating fs-6"><?= $movie['rating'] ?></span>
-                <span class="cb-badge-genre"><?= sanitize($movie['genre']) ?></span>
                 <?php if ($movie['status'] === 'now_showing'): ?>
-                    <span class="badge bg-success">Now Showing</span>
-                <?php elseif ($movie['status'] === 'coming_soon'): ?>
-                    <span class="badge bg-secondary">Coming Soon</span>
+                <div class="mt-3 d-none d-md-block">
+                    <a href="#showtimes" class="btn btn-cb-primary w-100">
+                        <i class="bi bi-ticket-perforated me-2"></i>Book Tickets
+                    </a>
+                </div>
                 <?php endif; ?>
             </div>
-            <h1 class="text-white fw-bold mb-3"><?= sanitize($movie['title']) ?></h1>
+        </div>
 
-            <div class="row g-3 mb-4">
+        <!-- ========================
+             RIGHT: INFO
+             ======================== -->
+        <div class="col-md-9">
+            <!-- Status & Rating Row -->
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <?php if ($movie['status'] === 'now_showing'): ?>
+                    <span class="ribbon-showing" style="font-size:.75rem;font-weight:700;padding:.3rem .85rem;border-radius:var(--cb-radius-pill);background:var(--cb-button);color:#fff">Now Showing</span>
+                <?php elseif ($movie['status'] === 'coming_soon'): ?>
+                    <span style="font-size:.75rem;font-weight:700;padding:.3rem .85rem;border-radius:var(--cb-radius-pill);background:var(--cb-charcoal);color:#fff">Coming Soon</span>
+                <?php endif; ?>
+                <span class="cb-badge-rating"><i class="bi bi-star-fill me-1" style="font-size:.7rem"></i><?= sanitize($movie['rating']) ?></span>
+                <?php foreach (explode(',', $movie['genre']) as $g): ?>
+                    <span class="cb-badge-genre"><?= sanitize(trim($g)) ?></span>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Title -->
+            <h1 class="cb-detail-title">
+                <?= sanitize($movie['title']) ?>
+            </h1>
+
+            <!-- Action buttons (Reference 2: Star Wars) -->
+            <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+                <button type="button" class="btn btn-cb-accent btn-sm px-4" onclick="alert('Trailer preview coming soon!')">
+                    <i class="bi bi-play-fill me-1"></i>Watch trailer
+                </button>
+                <button type="button" class="btn btn-cb-secondary btn-sm px-3" onclick="this.classList.toggle('active')">
+                    <i class="bi bi-heart me-1"></i>Favourite
+                </button>
+            </div>
+
+            <!-- Info Grid -->
+            <div class="row g-2 mb-4">
                 <div class="col-6 col-md-3">
-                    <div class="cb-card p-3 text-center">
-                        <i class="bi bi-clock text-warning d-block mb-1"></i>
-                        <div class="text-white fw-semibold"><?= $movie['duration'] ?> min</div>
-                        <small class="text-muted-cb">Duration</small>
+                    <div class="cb-info-card">
+                        <div class="info-icon"><i class="bi bi-clock"></i></div>
+                        <div class="info-value"><?= $movie['duration'] ?> min</div>
+                        <div class="info-label">Duration</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="cb-card p-3 text-center">
-                        <i class="bi bi-calendar text-warning d-block mb-1"></i>
-                        <div class="text-white fw-semibold">
+                    <div class="cb-info-card">
+                        <div class="info-icon"><i class="bi bi-calendar-event"></i></div>
+                        <div class="info-value" style="font-size:.85rem">
                             <?= $movie['release_date'] ? date('d M Y', strtotime($movie['release_date'])) : 'TBA' ?>
                         </div>
-                        <small class="text-muted-cb">Release</small>
+                        <div class="info-label">Release Date</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="cb-info-card">
+                        <div class="info-icon"><i class="bi bi-star-fill" style="color:var(--cb-rating)"></i></div>
+                        <div class="info-value"><?= sanitize($movie['rating']) ?></div>
+                        <div class="info-label">Age Rating</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="cb-info-card">
+                        <div class="info-icon"><i class="bi bi-film"></i></div>
+                        <div class="info-value" style="font-size:.85rem"><?= sanitize(explode(',', $movie['genre'])[0]) ?></div>
+                        <div class="info-label">Genre</div>
                     </div>
                 </div>
             </div>
 
-            <h5 class="text-white fw-semibold mb-2">Synopsis</h5>
-            <p class="text-muted-cb" style="line-height:1.8">
-                <?= nl2br(sanitize($movie['synopsis'] ?? 'No synopsis available.')) ?>
-            </p>
+            <!-- Synopsis -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-2" style="font-size:1.05rem;color:var(--cb-text)">
+                    <i class="bi bi-file-text me-2" style="color:var(--cb-text)"></i>Synopsis
+                </h5>
+                <p style="line-height:1.8;color:var(--cb-text-secondary);font-size:.925rem">
+                    <?= nl2br(sanitize($movie['synopsis'] ?? 'No synopsis available.')) ?>
+                </p>
+            </div>
+
+            <!-- Mobile Book Button -->
+            <?php if ($movie['status'] === 'now_showing'): ?>
+            <div class="d-md-none mb-4">
+                <a href="#showtimes" class="btn btn-cb-primary w-100">
+                    <i class="bi bi-ticket-perforated me-2"></i>View Showtimes
+                </a>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
-    <!-- Showtimes Section -->
+    <!-- ============================================================
+         SHOWTIMES SECTION (Reference 2: Get Showtimes block)
+         ============================================================ -->
     <?php if ($movie['status'] === 'now_showing'): ?>
-    <div class="cb-card mt-5">
-        <div class="card-header">
-            <i class="bi bi-calendar-week me-2 text-warning"></i>Select Showtime
+    <div class="cb-showtimes-box" id="showtimes">
+        <div class="cb-showtimes-header-dark">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar-week" style="font-size:1.15rem"></i>
+                <h5 class="mb-0">Get Showtimes</h5>
+            </div>
+            <span style="font-size:.8rem;opacity:.8">Select date and hall</span>
         </div>
         <div class="p-4">
             <?php if (empty($showtimesByDate)): ?>
-                <p class="text-muted-cb">No showtimes available at this time.</p>
+                <div class="cb-empty" style="padding:2rem 1rem">
+                    <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
+                    <h5>No Showtimes Available</h5>
+                    <p>No showtimes scheduled for the next 7 days.</p>
+                </div>
             <?php else: ?>
                 <!-- Date Tabs -->
-                <ul class="nav nav-tabs border-cb mb-4" id="dateTabs">
+                <ul class="nav cb-tabs nav-tabs mb-4" id="dateTabs" role="tablist">
                     <?php $i = 0; foreach ($showtimesByDate as $date => $times): ?>
-                    <li class="nav-item">
-                        <button class="nav-link <?= $i === 0 ? 'active' : '' ?> text-white"
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link <?= $i === 0 ? 'active' : '' ?>"
                                 data-bs-toggle="tab"
                                 data-bs-target="#date-<?= str_replace('-', '', $date) ?>"
-                                style="background:<?= $i === 0 ? 'var(--cb-accent)' : 'var(--cb-mid)' ?>; border-color: var(--cb-border);">
-                            <?= date('D, d M', strtotime($date)) ?>
+                                type="button" role="tab">
+                            <span style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em"><?= date('D', strtotime($date)) ?></span>
+                            <span style="display:block;font-size:1rem;font-weight:800"><?= date('d', strtotime($date)) ?></span>
+                            <span style="display:block;font-size:.7rem"><?= date('M', strtotime($date)) ?></span>
                         </button>
                     </li>
                     <?php $i++; endforeach; ?>
                 </ul>
 
-                <div class="tab-content">
+                <!-- Tab Content -->
+                <div class="tab-content" id="showtime-container">
                     <?php $i = 0; foreach ($showtimesByDate as $date => $times): ?>
                     <div class="tab-pane fade <?= $i === 0 ? 'show active' : '' ?>"
-                         id="date-<?= str_replace('-', '', $date) ?>">
+                         id="date-<?= str_replace('-', '', $date) ?>"
+                         role="tabpanel">
                         <div class="d-flex flex-wrap gap-3">
                             <?php foreach ($times as $st): ?>
                             <?php if (isLoggedIn()): ?>
                                 <a href="<?= BASE_URL ?>/booking/seats.php?showtime_id=<?= $st['id'] ?>"
-                                   class="cb-showtime-btn text-decoration-none d-block">
+                                   class="cb-showtime-btn text-decoration-none">
                             <?php else: ?>
                                 <a href="<?= BASE_URL ?>/login.php"
-                                   class="cb-showtime-btn text-decoration-none d-block" title="Login to book">
+                                   class="cb-showtime-btn text-decoration-none" title="Login to book">
                             <?php endif; ?>
-                                    <div class="fw-bold text-white"><?= date('H:i', strtotime($st['show_time'])) ?></div>
-                                    <div class="small text-muted-cb"><?= sanitize($st['hall']) ?></div>
-                                    <div class="small text-warning"><?= formatPrice($st['price']) ?></div>
+                                    <div class="st-time"><?= date('H:i', strtotime($st['show_time'])) ?></div>
+                                    <div class="st-hall"><?= sanitize($st['hall']) ?></div>
+                                    <div class="st-price"><?= formatPrice($st['price']) ?></div>
                                 </a>
                             <?php endforeach; ?>
                         </div>
@@ -143,10 +222,12 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <?php if (!isLoggedIn()): ?>
-                <p class="text-muted-cb small mt-3">
-                    <i class="bi bi-info-circle me-1"></i>
-                    <a href="<?= BASE_URL ?>/login.php" class="text-warning">Login</a> to book tickets.
-                </p>
+                <div class="mt-4 p-3 d-flex align-items-center gap-2" style="background:var(--cb-section);border-radius:var(--cb-radius-sm);border:1px solid var(--cb-border)">
+                    <i class="bi bi-info-circle text-dark"></i>
+                    <span style="font-size:.875rem;color:var(--cb-text)">
+                        <a href="<?= BASE_URL ?>/login.php" class="fw-semibold text-decoration-underline" style="color:var(--cb-text)">Sign in</a> to book tickets for this movie.
+                    </span>
+                </div>
                 <?php endif; ?>
             <?php endif; ?>
         </div>

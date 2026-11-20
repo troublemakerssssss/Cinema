@@ -62,32 +62,48 @@ if ($action === 'edit' && $id > 0) {
 // All movies
 $movies = $db->query("SELECT * FROM movies ORDER BY created_at DESC")->fetchAll();
 
-$success = $success ?: ($_GET['success'] === 'deleted' ? 'Movie deleted.' : '');
+$success = $success ?: (isset($_GET['success']) && $_GET['success'] === 'deleted' ? 'Movie deleted.' : '');
 
 $page_title         = 'Manage Movies';
 $current_admin_page = 'movies';
 require_once __DIR__ . '/partials/admin-header.php';
 ?>
-<script>var BASE_URL = '<?= BASE_URL ?>';</script>
 
-<div class="d-flex" style="min-height:calc(100vh - 60px)">
+<div class="cb-admin-layout">
     <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="flex-grow-1 p-4">
+    <main class="cb-admin-main">
+        <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="text-white fw-bold mb-0"><i class="bi bi-camera-reels me-2 text-warning"></i>Movies</h2>
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--cb-text)">
+                    <i class="bi bi-camera-reels me-2" style="color:var(--cb-text)"></i>Movies
+                </h2>
+                <p class="text-muted-cb mb-0" style="font-size:.875rem"><?= count($movies) ?> total movies</p>
+            </div>
             <button class="btn btn-cb-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#movieForm">
                 <i class="bi bi-plus-circle me-1"></i><?= $editing ? 'Edit Movie' : 'Add Movie' ?>
             </button>
         </div>
 
-        <?php if ($success): ?><div class="cb-alert-success mb-3" data-auto-dismiss="4000"><i class="bi bi-check-circle me-2"></i><?= sanitize($success) ?></div><?php endif; ?>
-        <?php if ($error):   ?><div class="cb-alert-danger  mb-3"><i class="bi bi-exclamation-triangle me-2"></i><?= sanitize($error) ?></div><?php endif; ?>
+        <?php if ($success): ?>
+        <div class="cb-alert-success mb-3" data-auto-dismiss="4000">
+            <i class="bi bi-check-circle-fill"></i><?= sanitize($success) ?>
+        </div>
+        <?php endif; ?>
+        <?php if ($error): ?>
+        <div class="cb-alert-danger mb-3">
+            <i class="bi bi-exclamation-circle-fill"></i><?= sanitize($error) ?>
+        </div>
+        <?php endif; ?>
 
         <!-- Add/Edit Form -->
         <div class="collapse <?= ($editing || $error) ? 'show' : '' ?> mb-4" id="movieForm">
             <div class="cb-card">
-                <div class="card-header"><?= $editing ? 'Edit Movie' : 'Add New Movie' ?></div>
+                <div class="card-header">
+                    <i class="bi bi-<?= $editing ? 'pencil' : 'plus-circle' ?> me-2" style="color:var(--cb-text)"></i>
+                    <?= $editing ? 'Edit Movie' : 'Add New Movie' ?>
+                </div>
                 <div class="p-4">
                     <form method="POST">
                         <?php if ($editing): ?><input type="hidden" name="edit_id" value="<?= $editing['id'] ?>"><?php endif; ?>
@@ -134,18 +150,18 @@ require_once __DIR__ . '/partials/admin-header.php';
                                 <input type="text" name="poster" class="form-control cb-form-control"
                                        placeholder="e.g. movie.jpg"
                                        value="<?= sanitize($editing['poster'] ?? 'default.jpg') ?>">
-                                <small class="text-muted-cb">Upload image to <code>assets/images/</code></small>
+                                <small class="text-muted-cb" style="font-size:.75rem">Upload image to <code>assets/images/</code></small>
                             </div>
                             <div class="col-12">
                                 <label class="cb-label">Synopsis</label>
                                 <textarea name="synopsis" class="form-control cb-form-control" rows="3"><?= sanitize($editing['synopsis'] ?? '') ?></textarea>
                             </div>
-                            <div class="col-12">
+                            <div class="col-12 d-flex gap-2">
                                 <button type="submit" class="btn btn-cb-primary">
                                     <i class="bi bi-save me-1"></i><?= $editing ? 'Update Movie' : 'Save Movie' ?>
                                 </button>
                                 <?php if ($editing): ?>
-                                <a href="<?= BASE_URL ?>/admin/movies.php" class="btn btn-outline-secondary ms-2">Cancel</a>
+                                <a href="<?= BASE_URL ?>/admin/movies.php" class="btn btn-cb-secondary">Cancel</a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -156,50 +172,68 @@ require_once __DIR__ . '/partials/admin-header.php';
 
         <!-- Movies Table -->
         <div class="cb-card">
-            <div class="card-header">All Movies (<?= count($movies) ?>)</div>
+            <div class="card-header">
+                <strong>All Movies</strong>
+                <span class="text-muted-cb ms-1" style="font-size:.8rem">(<?= count($movies) ?>)</span>
+            </div>
             <div class="table-responsive">
                 <table class="table cb-table mb-0">
-                    <thead><tr>
-                        <th>#</th><th>Poster</th><th>Title</th><th>Genre</th><th>Duration</th><th>Rating</th><th>Status</th><th>Actions</th>
-                    </tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Poster</th>
+                            <th>Title</th>
+                            <th>Genre</th>
+                            <th>Duration</th>
+                            <th>Rating</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody>
+                        <?php if (empty($movies)): ?>
+                        <tr><td colspan="8" class="text-center py-4 text-muted-cb">No movies found.</td></tr>
+                        <?php else: ?>
                         <?php foreach ($movies as $m): ?>
                         <tr>
-                            <td class="text-muted-cb"><?= $m['id'] ?></td>
+                            <td style="color:var(--cb-text-muted);font-size:.82rem"><?= $m['id'] ?></td>
                             <td>
                                 <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($m['poster']) ?>"
                                      onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
-                                     style="width:40px;height:55px;object-fit:cover;border-radius:4px" alt="">
+                                     style="width:36px;height:50px;object-fit:cover;border-radius:4px" alt="">
                             </td>
-                            <td class="text-white fw-semibold"><?= sanitize($m['title']) ?></td>
-                            <td class="small text-muted-cb"><?= sanitize($m['genre']) ?></td>
-                            <td><?= $m['duration'] ?> min</td>
+                            <td style="font-weight:600"><?= sanitize($m['title']) ?></td>
+                            <td style="color:var(--cb-text-muted);font-size:.82rem"><?= sanitize($m['genre']) ?></td>
+                            <td style="font-size:.85rem"><?= $m['duration'] ?> min</td>
                             <td><span class="cb-badge-rating"><?= $m['rating'] ?></span></td>
                             <td>
                                 <?php if ($m['status'] === 'now_showing'): ?>
-                                    <span class="badge bg-success">Now Showing</span>
+                                    <span class="status-confirmed">Now Showing</span>
                                 <?php elseif ($m['status'] === 'coming_soon'): ?>
-                                    <span class="badge bg-secondary">Coming Soon</span>
+                                    <span class="status-pending">Coming Soon</span>
                                 <?php else: ?>
-                                    <span class="badge bg-dark">Ended</span>
+                                    <span class="status-cancelled">Ended</span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="?action=edit&id=<?= $m['id'] ?>" class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form id="del-<?= $m['id'] ?>" method="GET" style="display:inline"
-                                      action="<?= BASE_URL ?>/admin/movies.php">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="id" value="<?= $m['id'] ?>">
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                            onclick="confirmDelete('del-<?= $m['id'] ?>', 'Delete <?= addslashes(sanitize($m['title'])) ?>?')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="d-flex gap-1">
+                                    <a href="?action=edit&id=<?= $m['id'] ?>" class="btn btn-cb-secondary btn-sm py-1 px-2">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form id="del-<?= $m['id'] ?>" method="GET" style="display:inline"
+                                          action="<?= BASE_URL ?>/admin/movies.php">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="<?= $m['id'] ?>">
+                                        <button type="button" class="btn btn-sm py-1 px-2" style="background:#FEF2F2;border:1px solid #FECACA;color:var(--cb-danger)"
+                                                onclick="confirmDelete('del-<?= $m['id'] ?>', 'Delete <?= addslashes(sanitize($m['title'])) ?>?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

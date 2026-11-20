@@ -37,24 +37,35 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 <script>var BASE_URL = '<?= BASE_URL ?>';</script>
 
-<div class="container py-5">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="text-white fw-bold mb-0">
-            <i class="bi bi-ticket-perforated-fill me-2 text-warning"></i>My Tickets
-        </h2>
-        <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-warning btn-sm">
-            <i class="bi bi-plus-circle me-1"></i>Book More
-        </a>
+<!-- Page Header -->
+<div style="background:var(--cb-white);border-bottom:1px solid var(--cb-border)">
+    <div class="container py-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1 class="h3 fw-bold mb-1" style="color:var(--cb-text)">
+                    <i class="bi bi-ticket-perforated-fill me-2" style="color:var(--cb-text)"></i>My Tickets
+                </h1>
+                <p class="text-muted-cb mb-0" style="font-size:.875rem"><?= $total ?> booking<?= $total !== 1 ? 's' : '' ?> found</p>
+            </div>
+            <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Book More Tickets
+            </a>
+        </div>
     </div>
+</div>
 
+<div class="container py-4">
     <?php if (empty($bookings)): ?>
-        <div class="text-center py-5 text-muted-cb">
-            <i class="bi bi-ticket fs-1 mb-3 d-block"></i>
+        <div class="cb-empty">
+            <div class="empty-icon"><i class="bi bi-ticket"></i></div>
+            <h5>No Tickets Yet</h5>
             <p>You haven't booked any tickets yet.</p>
-            <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-primary">Browse Movies</a>
+            <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-primary">
+                <i class="bi bi-camera-reels me-2"></i>Browse Movies
+            </a>
         </div>
     <?php else: ?>
-        <div class="row g-3">
+        <div class="d-flex flex-column gap-3">
             <?php foreach ($bookings as $b):
                 $seatStmt = $db->prepare("
                     SELECT CONCAT(se.seat_row, se.seat_number) AS code
@@ -66,60 +77,72 @@ require_once __DIR__ . '/../includes/header.php';
                 $seatStmt->execute([$b['id']]);
                 $seats = implode(', ', $seatStmt->fetchAll(PDO::FETCH_COLUMN));
             ?>
-            <div class="col-12">
-                <div class="cb-ticket">
-                    <div class="ticket-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="small opacity-75">BOOKING CODE</div>
-                                <div class="fw-bold font-monospace fs-5"><?= sanitize($b['booking_code']) ?></div>
+            <div class="cb-ticket">
+                <!-- Header -->
+                <div class="ticket-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.75;margin-bottom:.2rem">Booking Code</div>
+                            <div style="font-weight:800;font-family:monospace;font-size:1.1rem;letter-spacing:.04em">
+                                <?= sanitize($b['booking_code']) ?>
                             </div>
-                            <span class="status-<?= $b['status'] ?>"><?= ucfirst($b['status']) ?></span>
                         </div>
+                        <span class="status-<?= $b['status'] ?>" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3);color:#fff">
+                            <?= ucfirst($b['status']) ?>
+                        </span>
                     </div>
-                    <div class="ticket-body">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-auto">
-                                <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($b['poster']) ?>"
-                                     onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
-                                     alt="" style="width:65px;height:95px;object-fit:cover;border-radius:8px">
-                            </div>
-                            <div class="col">
-                                <h5 class="text-white fw-bold mb-2"><?= sanitize($b['movie_title']) ?></h5>
-                                <div class="row g-2">
-                                    <div class="col-6 col-md-3">
-                                        <div class="small text-muted-cb">Date</div>
-                                        <div class="text-white small fw-semibold"><?= date('d M Y', strtotime($b['show_date'])) ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="small text-muted-cb">Time</div>
-                                        <div class="text-white small fw-semibold"><?= date('H:i', strtotime($b['show_time'])) ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="small text-muted-cb">Hall</div>
-                                        <div class="text-white small fw-semibold"><?= sanitize($b['hall']) ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="small text-muted-cb">Seats</div>
-                                        <div class="text-white small fw-semibold"><?= sanitize($seats) ?></div>
-                                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="ticket-body">
+                    <div class="row g-3 align-items-center">
+                        <!-- Poster -->
+                        <div class="col-auto">
+                            <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($b['poster']) ?>"
+                                 onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
+                                 alt="" style="width:60px;height:88px;object-fit:cover;border-radius:var(--cb-radius-sm)">
+                        </div>
+                        <!-- Info -->
+                        <div class="col">
+                            <h5 style="font-weight:700;font-size:.95rem;color:var(--cb-text);margin-bottom:.6rem">
+                                <?= sanitize($b['movie_title']) ?>
+                            </h5>
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted);font-weight:600">Date</div>
+                                    <div style="font-size:.82rem;font-weight:600;color:var(--cb-text)"><?= date('d M Y', strtotime($b['show_date'])) ?></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted);font-weight:600">Time</div>
+                                    <div style="font-size:.82rem;font-weight:600;color:var(--cb-text)"><?= date('H:i', strtotime($b['show_time'])) ?></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted);font-weight:600">Hall</div>
+                                    <div style="font-size:.82rem;font-weight:600;color:var(--cb-text)"><?= sanitize($b['hall']) ?></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted);font-weight:600">Seats</div>
+                                    <div style="font-size:.82rem;font-weight:600;color:var(--cb-text)"><?= sanitize($seats) ?></div>
                                 </div>
                             </div>
-                            <div class="col-md-auto text-end">
-                                <div class="small text-muted-cb"><?= $b['total_seats'] ?> seat(s)</div>
-                                <div class="text-warning fw-bold fs-5"><?= formatPrice($b['total_price']) ?></div>
-                            </div>
+                        </div>
+                        <!-- Price -->
+                        <div class="col-md-auto text-md-end">
+                            <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-muted);font-weight:600"><?= $b['total_seats'] ?> seat<?= $b['total_seats'] > 1 ? 's' : '' ?></div>
+                            <div style="font-weight:800;font-size:1.1rem;color:var(--cb-text)"><?= formatPrice($b['total_price']) ?></div>
                         </div>
                     </div>
-                    <div class="ticket-footer">
-                        <small class="text-muted-cb">
-                            Booked on <?= date('d M Y H:i', strtotime($b['created_at'])) ?>
-                        </small>
-                        <a href="<?= BASE_URL ?>/booking/confirmation.php?booking_id=<?= $b['id'] ?>"
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye me-1"></i>View
-                        </a>
-                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="ticket-footer">
+                    <small style="color:var(--cb-text-muted);font-size:.78rem">
+                        <i class="bi bi-calendar3 me-1"></i>Booked on <?= date('d M Y H:i', strtotime($b['created_at'])) ?>
+                    </small>
+                    <a href="<?= BASE_URL ?>/booking/confirmation.php?booking_id=<?= $b['id'] ?>"
+                       class="btn btn-cb-secondary btn-sm">
+                        <i class="bi bi-eye me-1"></i>View Details
+                    </a>
                 </div>
             </div>
             <?php endforeach; ?>

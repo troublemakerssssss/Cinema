@@ -47,67 +47,84 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-7">
+        <div class="col-lg-6 col-md-8">
+
             <!-- Success Banner -->
-            <div class="text-center mb-4">
-                <div class="mb-3">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size:3.5rem"></i>
+            <div class="text-center mb-5">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width:72px;height:72px;background:#F0FDF4;border-radius:50%;border:2px solid #BBF7D0">
+                    <i class="bi bi-check-lg" style="font-size:2rem;color:var(--cb-success)"></i>
                 </div>
-                <h2 class="text-white fw-bold">Booking Confirmed!</h2>
-                <p class="text-muted-cb">Your tickets have been successfully booked. Enjoy the movie!</p>
+                <h2 class="fw-bold mb-1" style="color:var(--cb-text)">Booking Confirmed!</h2>
+                <p style="color:var(--cb-text-muted);font-size:.9rem">
+                    Your tickets have been successfully booked. Enjoy the movie!
+                </p>
             </div>
 
             <!-- Ticket Card -->
             <div class="cb-ticket">
-                <!-- Header -->
+                <!-- Ticket Header: Booking Code -->
                 <div class="ticket-header">
-                    <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-start justify-content-between">
                         <div>
-                            <div class="small opacity-75 mb-1">BOOKING CODE</div>
-                            <div class="fs-4 fw-bold font-monospace"><?= sanitize($booking['booking_code']) ?></div>
+                            <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.75;margin-bottom:.25rem">Booking Code</div>
+                            <div style="font-size:1.5rem;font-weight:800;font-family:monospace;letter-spacing:.05em">
+                                <?= sanitize($booking['booking_code']) ?>
+                            </div>
                         </div>
-                        <i class="bi bi-camera-reels-fill fs-2 opacity-50"></i>
+                        <div style="opacity:.4">
+                            <i class="bi bi-camera-reels-fill" style="font-size:2rem"></i>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Body -->
+                <!-- Ticket Body: Movie Details -->
                 <div class="ticket-body">
-                    <div class="row g-3">
-                        <div class="col-3">
+                    <div class="row g-3 align-items-start">
+                        <!-- Poster -->
+                        <div class="col-auto">
                             <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($booking['poster']) ?>"
                                  onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
-                                 alt="" style="width:100%;border-radius:8px;aspect-ratio:2/3;object-fit:cover">
+                                 alt="" style="width:72px;border-radius:var(--cb-radius-sm);aspect-ratio:2/3;object-fit:cover">
                         </div>
-                        <div class="col-9">
-                            <h5 class="text-white fw-bold"><?= sanitize($booking['movie_title']) ?></h5>
-
-                            <div class="row g-2 mt-1">
+                        <!-- Info -->
+                        <div class="col">
+                            <h5 class="fw-bold mb-3" style="color:var(--cb-text);font-size:1rem">
+                                <?= sanitize($booking['movie_title']) ?>
+                            </h5>
+                            <div class="row g-2">
                                 <div class="col-6">
-                                    <div class="small text-muted-cb">Date</div>
-                                    <div class="text-white small fw-semibold">
+                                    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted)">Date</div>
+                                    <div style="font-size:.85rem;font-weight:600;color:var(--cb-text)">
                                         <?= date('D, d M Y', strtotime($booking['show_date'])) ?>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted-cb">Time</div>
-                                    <div class="text-white small fw-semibold">
+                                    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted)">Time</div>
+                                    <div style="font-size:.85rem;font-weight:600;color:var(--cb-text)">
                                         <?= date('H:i', strtotime($booking['show_time'])) ?>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted-cb">Hall</div>
-                                    <div class="text-white small fw-semibold"><?= sanitize($booking['hall']) ?></div>
+                                    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted)">Hall</div>
+                                    <div style="font-size:.85rem;font-weight:600;color:var(--cb-text)">
+                                        <?= sanitize($booking['hall']) ?>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted-cb">Seats</div>
-                                    <div class="text-white small fw-semibold"><?= implode(', ', $seatCodes) ?></div>
+                                    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted)">Seats</div>
+                                    <div style="font-size:.85rem;font-weight:600;color:var(--cb-text)">
+                                        <?= implode(', ', $seatCodes) ?>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted-cb">Total Seats</div>
-                                    <div class="text-white small fw-semibold"><?= $booking['total_seats'] ?></div>
+                                    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted)">Tickets</div>
+                                    <div style="font-size:.85rem;font-weight:600;color:var(--cb-text)">
+                                        <?= $booking['total_seats'] ?> seat<?= $booking['total_seats'] > 1 ? 's' : '' ?>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted-cb">Status</div>
+                                    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-text-muted)">Status</div>
                                     <div><span class="status-confirmed">Confirmed</span></div>
                                 </div>
                             </div>
@@ -115,30 +132,42 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
 
-                <!-- Footer -->
+                <!-- Ticket Footer: Payment -->
                 <div class="ticket-footer">
                     <div>
-                        <div class="small text-muted-cb">Total Payment</div>
-                        <div class="text-warning fw-bold fs-5"><?= formatPrice($booking['total_price']) ?></div>
+                        <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-muted)">Total Payment</div>
+                        <div style="font-size:1.35rem;font-weight:800;color:var(--cb-text)">
+                            <?= formatPrice($booking['total_price']) ?>
+                        </div>
                     </div>
                     <div class="text-end">
-                        <div class="small text-muted-cb">Booked By</div>
-                        <div class="text-white small fw-semibold"><?= sanitize($_SESSION['name']) ?></div>
+                        <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cb-muted)">Booked By</div>
+                        <div style="font-size:.85rem;font-weight:600;color:var(--cb-text)">
+                            <?= sanitize($_SESSION['name']) ?>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Actions -->
+            <!-- Action Buttons -->
             <div class="d-flex flex-column flex-sm-row gap-2 mt-4 justify-content-center">
-                <a href="<?= BASE_URL ?>/user/my-tickets.php" class="btn btn-cb-primary">
+                <a href="<?= BASE_URL ?>/user/my-tickets.php" class="btn btn-cb-primary px-4">
                     <i class="bi bi-ticket-perforated me-2"></i>My Tickets
                 </a>
-                <a href="<?= BASE_URL ?>/movies.php" class="btn btn-outline-secondary">
-                    <i class="bi bi-camera-reels me-2"></i>Browse Movies
+                <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-secondary px-4">
+                    <i class="bi bi-camera-reels me-2"></i>Browse More Movies
                 </a>
-                <button onclick="window.print()" class="btn btn-outline-light">
+                <button onclick="window.print()" class="btn btn-cb-secondary px-4">
                     <i class="bi bi-printer me-2"></i>Print
                 </button>
+            </div>
+
+            <!-- Info Note -->
+            <div class="mt-4 p-3 text-center" style="background:var(--cb-section);border-radius:var(--cb-radius-sm);border:1px solid var(--cb-border)">
+                <i class="bi bi-info-circle me-1" style="color:var(--cb-text)"></i>
+                <span style="font-size:.82rem;color:var(--cb-text)">
+                    Please bring your booking code or this page to the cinema for entry.
+                </span>
             </div>
         </div>
     </div>

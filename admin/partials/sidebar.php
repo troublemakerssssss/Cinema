@@ -8,13 +8,14 @@ $menu = [
     ['url' => BASE_URL . '/admin/users.php',      'icon' => 'bi-people',                 'label' => 'Users',      'key' => 'users'],
 ];
 ?>
-<nav class="cb-sidebar p-3 d-none d-lg-block">
-    <ul class="nav flex-column gap-1 mt-2">
+<nav class="cb-sidebar d-none d-lg-flex flex-column">
+    <div class="sidebar-label">Main Menu</div>
+    <ul class="nav flex-column gap-1">
         <?php foreach ($menu as $item): ?>
         <li class="nav-item">
             <a href="<?= $item['url'] ?>"
                class="nav-link <?= $current_admin_page === $item['key'] ? 'active' : '' ?>">
-                <i class="bi <?= $item['icon'] ?> me-2"></i><?= $item['label'] ?>
+                <i class="bi <?= $item['icon'] ?>"></i><?= $item['label'] ?>
             </a>
         </li>
         <?php endforeach; ?>

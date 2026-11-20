@@ -52,30 +52,70 @@ foreach ($seats as $seat) {
     $seatGrid[$seat['seat_row']][] = $seat;
 }
 
+// Count available seats
+$availableCount = count(array_filter($seats, fn($s) => $s['status'] === 'available'));
+
 $page_title   = 'Select Seats — ' . sanitize($showtime['movie_title']);
 $current_page = 'movies';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <script>var BASE_URL = '<?= BASE_URL ?>';</script>
 
-<div class="container py-5">
-    <!-- Back -->
-    <a href="<?= BASE_URL ?>/movie-detail.php?id=<?= $showtime['movie_id'] ?>"
-       class="btn btn-sm btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-1"></i>Back
-    </a>
+<!-- Breadcrumb -->
+<div style="background:var(--cb-white);border-bottom:1px solid var(--cb-border)">
+    <div class="container py-3">
+        <nav style="font-size:.82rem;" aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider: '›';">
+                <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/movies.php" style="color:var(--cb-text-muted)">Movies</a></li>
+                <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/movie-detail.php?id=<?= $showtime['movie_id'] ?>" style="color:var(--cb-text-muted)"><?= sanitize($showtime['movie_title']) ?></a></li>
+                <li class="breadcrumb-item active" style="color:var(--cb-text)">Select Seats</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-4">
+    <?php
+    $error = $_GET['error'] ?? '';
+    if ($error === 'seats_taken'): ?>
+    <div class="cb-alert-danger mb-3">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Some of your selected seats were just booked by someone else. Please select new seats.
+    </div>
+    <?php elseif ($error === 'booking_failed'): ?>
+    <div class="cb-alert-danger mb-3">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Booking failed due to an error. Please try again.
+    </div>
+    <?php endif; ?>
+
+    <!-- Page Header (Reference 3: Royal Cinema) -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-1" style="color:var(--cb-text);letter-spacing:-0.02em">Choose your seats</h2>
+        <p class="text-muted-cb mb-0" style="font-size:.9rem"><?= sanitize($showtime['movie_title']) ?> &bull; <?= sanitize($showtime['hall']) ?> &bull; <?= formatTime($showtime['show_time']) ?></p>
+    </div>
 
     <div class="row g-4">
-        <!-- Seat Map -->
+        <!-- ========================
+             LEFT: SEAT MAP
+             ======================== -->
         <div class="col-lg-8">
             <div class="cb-card">
-                <div class="card-header">
-                    <i class="bi bi-grid-3x3-gap me-2 text-warning"></i>Select Your Seats
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span>
+                        <i class="bi bi-grid-3x3-gap me-2" style="color:var(--cb-text)"></i>
+                        <strong>Seat Layout</strong>
+                    </span>
+                    <span style="font-size:.8rem;color:var(--cb-muted)">
+                        <i class="bi bi-check-circle-fill me-1" style="color:var(--cb-success)"></i><?= $availableCount ?> seats available
+                    </span>
                 </div>
                 <div class="p-4">
-                    <!-- Screen -->
-                    <div class="seat-screen-label">SCREEN</div>
-                    <div class="seat-screen"></div>
+                    <!-- Screen indicator (Reference 3: Curved Screen) -->
+                    <div class="seat-screen-wrapper mb-5">
+                        <div class="seat-screen"></div>
+                        <div class="seat-screen-label">SCREEN</div>
+                    </div>
 
                     <!-- Seat Map -->
                     <div class="seat-map-container">
@@ -90,7 +130,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 <div class="seat <?= $status ?>"
                                      data-seat-id="<?= $seat['id'] ?>"
                                      data-seat-code="<?= $code ?>"
-                                     title="<?= $code ?> — <?= ucfirst($status) ?>">
+                                     title="Seat <?= $code ?> — <?= ucfirst($status) ?>">
                                     <?= $seat['seat_number'] ?>
                                 </div>
                                 <!-- Aisle gap after seat 5 -->
@@ -98,12 +138,13 @@ require_once __DIR__ . '/../includes/header.php';
                                     <div class="seat-aisle"></div>
                                 <?php endif; ?>
                             <?php endforeach; ?>
+                            <div class="seat-row-label ms-1"><?= $rowLabel ?></div>
                         </div>
                         <?php endforeach; ?>
                     </div>
 
-                    <!-- Legend -->
-                    <div class="seat-legend">
+                    <!-- Legend (Reference 3: Available, Selected, Unavailable) -->
+                    <div class="seat-legend mt-4 pt-3" style="border-top:1px solid var(--cb-border)">
                         <div class="seat-legend-item">
                             <div class="seat-legend-box available"></div>
                             <span>Available</span>
@@ -114,73 +155,85 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                         <div class="seat-legend-item">
                             <div class="seat-legend-box booked"></div>
-                            <span>Booked</span>
+                            <span>Unavailable</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Booking Summary -->
+        <!-- ========================
+             RIGHT: BOOKING SUMMARY (Reference 3)
+             ======================== -->
         <div class="col-lg-4">
-            <div class="cb-card sticky-top" style="top:80px">
+            <div class="cb-card" style="position:sticky;top:84px">
                 <div class="card-header">
-                    <i class="bi bi-receipt me-2 text-warning"></i>Booking Summary
+                    <i class="bi bi-receipt me-2" style="color:var(--cb-text)"></i>
+                    <strong>Your Summary</strong>
                 </div>
                 <div class="p-4">
-                    <!-- Movie info -->
-                    <div class="d-flex gap-3 mb-3 pb-3 border-bottom border-cb">
+                    <!-- Movie Info -->
+                    <div class="d-flex gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--cb-border)">
                         <img src="<?= BASE_URL ?>/assets/images/<?= sanitize($showtime['poster']) ?>"
                              onerror="this.src='<?= BASE_URL ?>/assets/images/no-poster.jpg'"
-                             alt="" style="width:60px;height:90px;object-fit:cover;border-radius:6px">
-                        <div>
-                            <div class="text-white fw-semibold"><?= sanitize($showtime['movie_title']) ?></div>
-                            <div class="small text-muted-cb mt-1">
-                                <i class="bi bi-calendar me-1"></i><?= formatDate($showtime['show_date']) ?>
+                             alt="" style="width:60px;height:88px;object-fit:cover;border-radius:var(--cb-radius-sm);flex-shrink:0">
+                        <div class="min-w-0">
+                            <div style="font-weight:800;font-size:.95rem;color:var(--cb-text);line-height:1.3" class="mb-1">
+                                <?= sanitize($showtime['movie_title']) ?>
                             </div>
-                            <div class="small text-muted-cb">
-                                <i class="bi bi-clock me-1"></i><?= formatTime($showtime['show_time']) ?>
+                            <div style="font-size:.8rem;color:var(--cb-muted)" class="d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-calendar3"></i>
+                                <?= formatDate($showtime['show_date']) ?>
                             </div>
-                            <div class="small text-muted-cb">
-                                <i class="bi bi-building me-1"></i><?= sanitize($showtime['hall']) ?>
+                            <div style="font-size:.8rem;color:var(--cb-muted)" class="d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-clock"></i>
+                                <?= formatTime($showtime['show_time']) ?>
+                            </div>
+                            <div style="font-size:.8rem;color:var(--cb-muted)" class="d-flex align-items-center gap-1">
+                                <i class="bi bi-building"></i>
+                                <?= sanitize($showtime['hall']) ?>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Hidden fields -->
+                    <!-- Hidden price field -->
                     <input type="hidden" id="seat-price" value="<?= $showtime['price'] ?>">
 
-                    <!-- Summary -->
+                    <!-- Summary Rows -->
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted-cb small">Seats Selected</span>
-                            <span class="text-white fw-semibold" id="selected-count">0</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="font-size:.85rem;color:var(--cb-muted)">Seats Selected</span>
+                            <span style="font-weight:700;color:var(--cb-text)" id="selected-count">0</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted-cb small">Seat Numbers</span>
-                            <span class="text-white small text-end" id="selected-seats-label">—</span>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span style="font-size:.85rem;color:var(--cb-muted)">Your Seats</span>
+                            <span style="font-size:.85rem;font-weight:700;color:var(--cb-text);text-align:right;max-width:60%" id="selected-seats-label">—</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted-cb small">Price / Seat</span>
-                            <span class="text-white small"><?= formatPrice($showtime['price']) ?></span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="font-size:.85rem;color:var(--cb-muted)">Price / Seat</span>
+                            <span style="font-size:.85rem;color:var(--cb-text)"><?= formatPrice($showtime['price']) ?></span>
                         </div>
-                        <hr class="border-cb">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-white fw-semibold">Total</span>
-                            <span class="text-warning fw-bold fs-5" id="selected-total">Rp 0</span>
-                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3" style="border-top:1px solid var(--cb-border)">
+                        <span style="font-weight:700;color:var(--cb-text)">Total Price</span>
+                        <span style="font-weight:800;font-size:1.35rem;color:var(--cb-text)" id="selected-total">Rp 0</span>
                     </div>
 
                     <!-- Booking form -->
-                    <form method="POST" action="<?= BASE_URL ?>/booking/process.php" id="booking-form">
+                    <form method="POST" action="<?= BASE_URL ?>/booking/process.php" id="booking-form" class="mt-4">
                         <input type="hidden" name="showtime_id"    value="<?= $showtime_id ?>">
                         <input type="hidden" name="selected_seats" id="selected-seat-ids" value="">
 
-                        <button type="submit" class="btn btn-cb-warning w-100 py-2 fw-bold"
+                        <button type="submit" class="btn btn-cb-primary w-100 py-3 fw-semibold"
                                 id="proceed-btn" disabled>
-                            Select Seats to Continue
+                            Continue to Ticket
                         </button>
                     </form>
+
+                    <p style="font-size:.75rem;color:var(--cb-muted);text-align:center;margin-top:.75rem">
+                        <i class="bi bi-shield-check me-1"></i>Secure instant reservation
+                    </p>
                 </div>
             </div>
         </div>

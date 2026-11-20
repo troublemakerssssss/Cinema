@@ -15,9 +15,13 @@ $totalSpent = $db->prepare("SELECT COALESCE(SUM(total_price),0) FROM bookings WH
 $totalSpent->execute([$userId]);
 $totalSpent = (float)$totalSpent->fetchColumn();
 
+$confirmedBookings = $db->prepare("SELECT COUNT(*) FROM bookings WHERE user_id = ? AND status = 'confirmed'");
+$confirmedBookings->execute([$userId]);
+$confirmedBookings = (int)$confirmedBookings->fetchColumn();
+
 // Recent bookings (last 5)
 $recent = $db->prepare("
-    SELECT b.*, m.title AS movie_title, s.show_date, s.show_time, s.hall
+    SELECT b.*, m.title AS movie_title, m.poster, s.show_date, s.show_time, s.hall
     FROM bookings b
     JOIN showtimes s ON s.id = b.showtime_id
     JOIN movies m ON m.id = s.movie_id
@@ -35,23 +39,32 @@ require_once __DIR__ . '/../includes/header.php';
 <script>var BASE_URL = '<?= BASE_URL ?>';</script>
 
 <div class="container py-5">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h2 class="text-white fw-bold mb-1">
-                <i class="bi bi-person-circle me-2 text-warning"></i>My Dashboard
-            </h2>
-            <p class="text-muted-cb mb-0">Welcome back, <?= sanitize($_SESSION['name']) ?>!</p>
+
+    <!-- Welcome Banner (Reference 4: Modern White Dashboard) -->
+    <div class="cb-dashboard-welcome mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--cb-muted);margin-bottom:.4rem">
+                    Welcome back
+                </div>
+                <h2 class="fw-bold mb-1" style="font-size:1.75rem;color:var(--cb-text)">
+                    <?= sanitize($_SESSION['name']) ?>
+                </h2>
+                <p style="font-size:.875rem;margin-bottom:0;color:var(--cb-muted)">
+                    <?= sanitize($_SESSION['email']) ?>
+                </p>
+            </div>
+            <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-primary">
+                <i class="bi bi-camera-reels me-2"></i>Book Tickets
+            </a>
         </div>
-        <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-warning">
-            <i class="bi bi-camera-reels me-2"></i>Book Tickets
-        </a>
     </div>
 
-    <!-- Stat Cards -->
+    <!-- Stat Cards (Reference 4) -->
     <div class="row g-3 mb-5">
         <div class="col-md-4">
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(26,115,232,.2); color:#6eb4ff">
+                <div class="stat-icon" style="background:var(--cb-section);color:var(--cb-text)">
                     <i class="bi bi-ticket-perforated-fill"></i>
                 </div>
                 <div>
@@ -62,23 +75,23 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="col-md-4">
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(249,168,37,.15); color:var(--cb-warn)">
-                    <i class="bi bi-currency-dollar"></i>
+                <div class="stat-icon" style="background:#EBF7EE;color:var(--cb-success)">
+                    <i class="bi bi-check-circle-fill"></i>
                 </div>
                 <div>
-                    <div class="stat-value" style="font-size:1.3rem"><?= formatPrice($totalSpent) ?></div>
-                    <div class="stat-label">Total Spent</div>
+                    <div class="stat-value"><?= $confirmedBookings ?></div>
+                    <div class="stat-label">Confirmed</div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(76,175,80,.15); color:#81c784">
-                    <i class="bi bi-person-check-fill"></i>
+                <div class="stat-icon" style="background:var(--cb-section);color:var(--cb-text)">
+                    <i class="bi bi-wallet2"></i>
                 </div>
                 <div>
-                    <div class="stat-value" style="font-size:1rem; padding-top:.3rem"><?= sanitize($_SESSION['email']) ?></div>
-                    <div class="stat-label">Account Email</div>
+                    <div class="stat-value" style="font-size:1.25rem;padding-top:.2rem"><?= formatPrice($totalSpent) ?></div>
+                    <div class="stat-label">Total Spent</div>
                 </div>
             </div>
         </div>
@@ -86,16 +99,24 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Recent Bookings -->
     <div class="cb-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-clock-history me-2 text-warning"></i>Recent Bookings</span>
-            <a href="<?= BASE_URL ?>/user/my-tickets.php" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span>
+                <i class="bi bi-clock-history me-2" style="color:var(--cb-text)"></i>
+                <strong>Recent Bookings</strong>
+            </span>
+            <a href="<?= BASE_URL ?>/user/my-tickets.php" class="btn btn-cb-secondary btn-sm">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
         <div class="p-0">
             <?php if (empty($recentBookings)): ?>
-                <div class="text-center py-5 text-muted-cb">
-                    <i class="bi bi-ticket fs-1 mb-2 d-block"></i>
-                    No bookings yet.
-                    <br><a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-primary btn-sm mt-3">Book Now</a>
+                <div class="cb-empty">
+                    <div class="empty-icon"><i class="bi bi-ticket"></i></div>
+                    <h5>No Bookings Yet</h5>
+                    <p>You haven't booked any tickets yet. Start by browsing movies.</p>
+                    <a href="<?= BASE_URL ?>/movies.php" class="btn btn-cb-primary btn-sm">
+                        <i class="bi bi-camera-reels me-2"></i>Browse Movies
+                    </a>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
@@ -108,21 +129,36 @@ require_once __DIR__ . '/../includes/header.php';
                                 <th>Seats</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($recentBookings as $b): ?>
                             <tr>
-                                <td class="font-monospace text-warning"><?= sanitize($b['booking_code']) ?></td>
-                                <td class="text-white fw-semibold"><?= sanitize($b['movie_title']) ?></td>
-                                <td class="text-muted-cb small">
+                                <td>
+                                    <span style="font-family:monospace;font-size:.82rem;font-weight:700;color:var(--cb-text)">
+                                        <?= sanitize($b['booking_code']) ?>
+                                    </span>
+                                </td>
+                                <td style="font-weight:600;max-width:160px">
+                                    <span class="d-block" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                        <?= sanitize($b['movie_title']) ?>
+                                    </span>
+                                </td>
+                                <td style="font-size:.82rem;color:var(--cb-muted)">
                                     <?= date('d M Y', strtotime($b['show_date'])) ?><br>
-                                    <?= date('H:i', strtotime($b['show_time'])) ?>
+                                    <span style="color:var(--cb-text)"><?= date('H:i', strtotime($b['show_time'])) ?></span>
                                     — <?= sanitize($b['hall']) ?>
                                 </td>
-                                <td><?= $b['total_seats'] ?></td>
-                                <td class="text-warning fw-semibold"><?= formatPrice($b['total_price']) ?></td>
+                                <td style="font-weight:600;text-align:center"><?= $b['total_seats'] ?></td>
+                                <td style="font-weight:700;color:var(--cb-text)"><?= formatPrice($b['total_price']) ?></td>
                                 <td><span class="status-<?= $b['status'] ?>"><?= ucfirst($b['status']) ?></span></td>
+                                <td>
+                                    <a href="<?= BASE_URL ?>/booking/confirmation.php?booking_id=<?= $b['id'] ?>"
+                                       class="btn btn-cb-secondary btn-sm py-1 px-2" style="font-size:.75rem">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
