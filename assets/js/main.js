@@ -147,28 +147,39 @@ function initCarousels() {
 
     /* ---- Touch / pointer drag on desktop ---- */
     document.querySelectorAll('.cb-carousel-track').forEach(track => {
-        let startX   = 0;
+        let startX     = 0;
         let scrollLeft = 0;
-        let isDragging = false;
+        let isDown     = false;   // mouse is pressed
+        let isDragging = false;   // drag threshold exceeded
+        let wasDragged = false;   // used to block the click after a real drag
 
         track.addEventListener('pointerdown', e => {
             if (e.pointerType === 'touch') return; // let native touch handle it
-            isDragging  = true;
-            startX      = e.pageX - track.getBoundingClientRect().left;
-            scrollLeft  = track.scrollLeft;
-            track.setPointerCapture(e.pointerId);
-            track.style.cursor = 'grabbing';
+            isDown     = true;
+            isDragging = false;
+            wasDragged = false;
+            startX     = e.pageX - track.getBoundingClientRect().left;
+            scrollLeft = track.scrollLeft;
             track.style.scrollBehavior = 'auto'; // instant during drag
         });
 
         track.addEventListener('pointermove', e => {
-            if (!isDragging || e.pointerType === 'touch') return;
+            if (!isDown || e.pointerType === 'touch') return;
             const x    = e.pageX - track.getBoundingClientRect().left;
-            const walk = (x - startX) * 1.2;
-            track.scrollLeft = scrollLeft - walk;
+            const walk = x - startX;
+            // Only commit to drag once the pointer has moved > 5 px
+            if (!isDragging) {
+                if (Math.abs(walk) <= 5) return;
+                isDragging = true;
+                wasDragged = true;
+                track.setPointerCapture(e.pointerId); // capture only after threshold
+                track.style.cursor = 'grabbing';
+            }
+            track.scrollLeft = scrollLeft - walk * 1.2;
         });
 
         const stopDrag = () => {
+            isDown     = false;
             isDragging = false;
             track.style.cursor = '';
             track.style.scrollBehavior = '';
@@ -176,9 +187,13 @@ function initCarousels() {
         track.addEventListener('pointerup',     stopDrag);
         track.addEventListener('pointercancel', stopDrag);
 
-        // Prevent click-through on cards after a drag
+        // Block click-through only when a real drag occurred
         track.addEventListener('click', e => {
-            if (Math.abs(track.scrollLeft - scrollLeft) > 4) e.preventDefault();
+            if (wasDragged) {
+                e.preventDefault();
+                e.stopPropagation();
+                wasDragged = false; // reset so the next plain click works
+            }
         }, { capture: true });
     });
 }
