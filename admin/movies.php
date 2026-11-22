@@ -26,27 +26,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $synopsis = trim($_POST['synopsis']    ?? '');
     $rating   = $_POST['rating']           ?? 'PG-13';
     $status   = $_POST['status']           ?? 'now_showing';
-    $release  = $_POST['release_date']     ?? null;
+    $release  = !empty($_POST['release_date']) ? trim($_POST['release_date']) : null;
     $poster   = trim($_POST['poster']      ?? 'default.jpg');
+    $editId   = (int)($_POST['edit_id']    ?? 0);
 
     if (empty($title) || empty($genre) || $duration <= 0) {
         $error = 'Title, genre and duration are required.';
     } else {
-        $editId = (int)($_POST['edit_id'] ?? 0);
-        if ($editId > 0) {
-            $db->prepare("
-                UPDATE movies SET title=?,genre=?,duration=?,synopsis=?,poster=?,rating=?,status=?,release_date=?
-                WHERE id=?
-            ")->execute([$title,$genre,$duration,$synopsis,$poster,$rating,$status,$release,$editId]);
-            $success = 'Movie updated successfully.';
+        // Check duplicate
+        $checkStmt = $db->prepare("
+            SELECT id FROM movies 
+            WHERE LOWER(title) = LOWER(?) AND (release_date <=> ?) AND id != ?
+            LIMIT 1
+        ");
+        $checkStmt->execute([$title, $release, $editId]);
+        if ($checkStmt->fetch()) {
+            $error = 'Movie already exists.';
         } else {
-            $db->prepare("
-                INSERT INTO movies (title,genre,duration,synopsis,poster,rating,status,release_date)
-                VALUES (?,?,?,?,?,?,?,?)
-            ")->execute([$title,$genre,$duration,$synopsis,$poster,$rating,$status,$release]);
-            $success = 'Movie added successfully.';
+            if ($editId > 0) {
+                $db->prepare("
+                    UPDATE movies SET title=?,genre=?,duration=?,synopsis=?,poster=?,rating=?,status=?,release_date=?
+                    WHERE id=?
+                ")->execute([$title,$genre,$duration,$synopsis,$poster,$rating,$status,$release,$editId]);
+                header('Location: ' . BASE_URL . '/admin/movies.php?success=updated');
+                exit;
+            } else {
+                $db->prepare("
+                    INSERT INTO movies (title,genre,duration,synopsis,poster,rating,status,release_date)
+                    VALUES (?,?,?,?,?,?,?,?)
+                ")->execute([$title,$genre,$duration,$synopsis,$poster,$rating,$status,$release]);
+                header('Location: ' . BASE_URL . '/admin/movies.php?success=added');
+                exit;
+            }
         }
-        $action = 'list';
     }
 }
 
@@ -57,12 +69,27 @@ if ($action === 'edit' && $id > 0) {
     $stmt->execute([$id]);
     $editing = $stmt->fetch();
     if (!$editing) { $action = 'list'; }
+} elseif (!empty($editId)) {
+    // Validation failed during POST: preserve edit mode
+    $stmt    = $db->prepare("SELECT * FROM movies WHERE id = ?");
+    $stmt->execute([$editId]);
+    $editing = $stmt->fetch();
+    if (!$editing) {
+        $editing = ['id' => $editId];
+    }
 }
 
 // All movies
 $movies = $db->query("SELECT * FROM movies ORDER BY created_at DESC")->fetchAll();
 
-$success = $success ?: (isset($_GET['success']) && $_GET['success'] === 'deleted' ? 'Movie deleted.' : '');
+$successKey = $_GET['success'] ?? '';
+if ($successKey === 'added' || $successKey === 'saved') {
+    $success = 'Movie added successfully.';
+} elseif ($successKey === 'updated') {
+    $success = 'Movie updated successfully.';
+} elseif ($successKey === 'deleted') {
+    $success = 'Movie deleted.';
+}
 
 $page_title         = 'Manage Movies';
 $current_admin_page = 'movies';
@@ -105,56 +132,59 @@ require_once __DIR__ . '/partials/admin-header.php';
                     <?= $editing ? 'Edit Movie' : 'Add New Movie' ?>
                 </div>
                 <div class="p-4">
-                    <form method="POST">
+                    <form method="POST" action="<?= BASE_URL ?>/admin/movies.php">
                         <?php if ($editing): ?><input type="hidden" name="edit_id" value="<?= $editing['id'] ?>"><?php endif; ?>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="cb-label">Title *</label>
                                 <input type="text" name="title" class="form-control cb-form-control"
-                                       value="<?= sanitize($editing['title'] ?? ($_POST['title'] ?? '')) ?>" required>
+                                       value="<?= sanitize($_POST['title'] ?? ($editing['title'] ?? '')) ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="cb-label">Genre *</label>
                                 <input type="text" name="genre" class="form-control cb-form-control"
                                        placeholder="e.g. Action, Sci-Fi"
-                                       value="<?= sanitize($editing['genre'] ?? ($_POST['genre'] ?? '')) ?>" required>
+                                       value="<?= sanitize($_POST['genre'] ?? ($editing['genre'] ?? '')) ?>" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="cb-label">Duration (min) *</label>
                                 <input type="number" name="duration" class="form-control cb-form-control" min="1"
-                                       value="<?= (int)($editing['duration'] ?? ($_POST['duration'] ?? 90)) ?>" required>
+                                       value="<?= (int)($_POST['duration'] ?? ($editing['duration'] ?? 90)) ?: '' ?>" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="cb-label">Rating</label>
                                 <select name="rating" class="form-select cb-form-control">
-                                    <?php foreach (['G','PG','PG-13','R','NC-17'] as $r): ?>
-                                    <option value="<?= $r ?>" <?= ($editing['rating'] ?? 'PG-13') === $r ? 'selected' : '' ?>><?= $r ?></option>
+                                    <?php
+                                    $selectedRating = $_POST['rating'] ?? ($editing['rating'] ?? 'PG-13');
+                                    foreach (['G','PG','PG-13','R','NC-17'] as $r): ?>
+                                    <option value="<?= $r ?>" <?= $selectedRating === $r ? 'selected' : '' ?>><?= $r ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="cb-label">Status</label>
                                 <select name="status" class="form-select cb-form-control">
-                                    <option value="now_showing" <?= ($editing['status'] ?? '') === 'now_showing' ? 'selected' : '' ?>>Now Showing</option>
-                                    <option value="coming_soon" <?= ($editing['status'] ?? '') === 'coming_soon' ? 'selected' : '' ?>>Coming Soon</option>
-                                    <option value="ended"       <?= ($editing['status'] ?? '') === 'ended'       ? 'selected' : '' ?>>Ended</option>
+                                    <?php $selectedStatus = $_POST['status'] ?? ($editing['status'] ?? 'now_showing'); ?>
+                                    <option value="now_showing" <?= $selectedStatus === 'now_showing' ? 'selected' : '' ?>>Now Showing</option>
+                                    <option value="coming_soon" <?= $selectedStatus === 'coming_soon' ? 'selected' : '' ?>>Coming Soon</option>
+                                    <option value="ended"       <?= $selectedStatus === 'ended'       ? 'selected' : '' ?>>Ended</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="cb-label">Release Date</label>
                                 <input type="date" name="release_date" class="form-control cb-form-control"
-                                       value="<?= sanitize($editing['release_date'] ?? '') ?>">
+                                       value="<?= sanitize($_POST['release_date'] ?? ($editing['release_date'] ?? '')) ?>">
                             </div>
                             <div class="col-md-6">
                                 <label class="cb-label">Poster Filename</label>
                                 <input type="text" name="poster" class="form-control cb-form-control"
                                        placeholder="e.g. movie.jpg"
-                                       value="<?= sanitize($editing['poster'] ?? 'default.jpg') ?>">
+                                       value="<?= sanitize($_POST['poster'] ?? ($editing['poster'] ?? 'default.jpg')) ?>">
                                 <small class="text-muted-cb" style="font-size:.75rem">Upload image to <code>assets/images/</code></small>
                             </div>
                             <div class="col-12">
                                 <label class="cb-label">Synopsis</label>
-                                <textarea name="synopsis" class="form-control cb-form-control" rows="3"><?= sanitize($editing['synopsis'] ?? '') ?></textarea>
+                                <textarea name="synopsis" class="form-control cb-form-control" rows="3"><?= sanitize($_POST['synopsis'] ?? ($editing['synopsis'] ?? '')) ?></textarea>
                             </div>
                             <div class="col-12 d-flex gap-2">
                                 <button type="submit" class="btn btn-cb-primary">

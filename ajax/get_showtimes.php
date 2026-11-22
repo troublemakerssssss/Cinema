@@ -33,4 +33,8 @@ foreach ($showtimes as &$st) {
     $st['show_time'] = date('H:i', strtotime($st['show_time']));
 }
 
-echo json_encode(['success' => true, 'showtimes' => $showtimes]);
+echo json_encode([
+    'success'   => true,
+    'logged_in' => isLoggedIn(),
+    'showtimes' => $showtimes
+]);

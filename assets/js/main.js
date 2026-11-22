@@ -71,34 +71,92 @@ function confirmDelete(formId, message) {
     }
 }
 
+/* ---- UTILS ---- */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 /* ---- AJAX: Showtimes by Date ---- */
+let showtimesRequestId = 0;
+
 function loadShowtimes(movieId, date) {
     const container = document.getElementById('showtime-container');
     if (!container) return;
+
+    const requestId = ++showtimesRequestId;
     container.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-dark"></div></div>';
 
-    fetch(`${BASE_URL}/ajax/get_showtimes.php?movie_id=${movieId}&date=${date}`)
-        .then(r => r.json())
+    fetch(`${BASE_URL}/ajax/get_showtimes.php?movie_id=${encodeURIComponent(movieId)}&date=${encodeURIComponent(date)}`)
+        .then(r => {
+            if (!r.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return r.json();
+        })
         .then(data => {
-            if (!data.success || data.showtimes.length === 0) {
+            if (requestId !== showtimesRequestId) return;
+            if (!data.success || !data.showtimes || data.showtimes.length === 0) {
                 container.innerHTML = '<p class="text-muted-cb small">No showtimes available for this date.</p>';
                 return;
             }
             let html = '<div class="d-flex flex-wrap gap-3">';
             data.showtimes.forEach(st => {
-                html += `<a href="${BASE_URL}/booking/seats.php?showtime_id=${st.id}"
-                            class="cb-showtime-btn text-decoration-none">
-                            <div class="st-time">${st.show_time}</div>
-                            <div class="st-hall">${st.hall}</div>
-                            <div class="st-price">Rp ${parseInt(st.price).toLocaleString('id-ID')}</div>
+                const url = data.logged_in
+                    ? `${BASE_URL}/booking/seats.php?showtime_id=${encodeURIComponent(st.id)}`
+                    : `${BASE_URL}/login.php`;
+                const titleAttr = !data.logged_in ? ' title="Login to book"' : '';
+                const time = escapeHtml(st.show_time);
+                const hall = escapeHtml(st.hall);
+                const price = Number(st.price).toLocaleString('id-ID');
+
+                html += `<a href="${url}" class="cb-showtime-btn text-decoration-none"${titleAttr}>
+                            <div class="st-time">${time}</div>
+                            <div class="st-hall">${hall}</div>
+                            <div class="st-price">Rp ${price}</div>
                          </a>`;
             });
             html += '</div>';
             container.innerHTML = html;
         })
         .catch(() => {
+            if (requestId !== showtimesRequestId) return;
             container.innerHTML = '<p class="text-danger small">Failed to load showtimes.</p>';
         });
+}
+
+function initShowtimeTabs() {
+    const tabsList = document.getElementById('dateTabs');
+    if (!tabsList) return;
+
+    const movieId = tabsList.dataset.movieId;
+    const tabs = document.querySelectorAll('#dateTabs .nav-link[data-date]');
+    if (!tabs.length || !movieId) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const date = tab.dataset.date;
+            if (date) {
+                loadShowtimes(movieId, date);
+            }
+        });
+    });
+
+    const activeTab = document.querySelector('#dateTabs .nav-link[data-date].active') || tabs[0];
+    if (activeTab && activeTab.dataset.date) {
+        if (!activeTab.classList.contains('active')) {
+            activeTab.classList.add('active');
+        }
+        loadShowtimes(movieId, activeTab.dataset.date);
+    }
 }
 
 /* ---- INIT ---- */
@@ -106,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     SeatMap.init();
     initAlerts();
     initCarousels();
+    initShowtimeTabs();
 });
 
 /* expose BASE_URL to JS — set in PHP before this file loads */

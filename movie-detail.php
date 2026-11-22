@@ -181,13 +181,12 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             <?php else: ?>
                 <!-- Date Tabs -->
-                <ul class="nav cb-tabs nav-tabs mb-4" id="dateTabs" role="tablist">
+                <ul class="nav cb-tabs nav-tabs mb-4" id="dateTabs" data-movie-id="<?= $id ?>" role="tablist">
                     <?php $i = 0; foreach ($showtimesByDate as $date => $times): ?>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link <?= $i === 0 ? 'active' : '' ?>"
-                                data-bs-toggle="tab"
-                                data-bs-target="#date-<?= str_replace('-', '', $date) ?>"
-                                type="button" role="tab">
+                                data-date="<?= $date ?>"
+                                type="button">
                             <span style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em"><?= date('D', strtotime($date)) ?></span>
                             <span style="display:block;font-size:1rem;font-weight:800"><?= date('d', strtotime($date)) ?></span>
                             <span style="display:block;font-size:.7rem"><?= date('M', strtotime($date)) ?></span>
@@ -196,30 +195,8 @@ require_once __DIR__ . '/includes/header.php';
                     <?php $i++; endforeach; ?>
                 </ul>
 
-                <!-- Tab Content -->
-                <div class="tab-content" id="showtime-container">
-                    <?php $i = 0; foreach ($showtimesByDate as $date => $times): ?>
-                    <div class="tab-pane fade <?= $i === 0 ? 'show active' : '' ?>"
-                         id="date-<?= str_replace('-', '', $date) ?>"
-                         role="tabpanel">
-                        <div class="d-flex flex-wrap gap-3">
-                            <?php foreach ($times as $st): ?>
-                            <?php if (isLoggedIn()): ?>
-                                <a href="<?= BASE_URL ?>/booking/seats.php?showtime_id=<?= $st['id'] ?>"
-                                   class="cb-showtime-btn text-decoration-none">
-                            <?php else: ?>
-                                <a href="<?= BASE_URL ?>/login.php"
-                                   class="cb-showtime-btn text-decoration-none" title="Login to book">
-                            <?php endif; ?>
-                                    <div class="st-time"><?= date('H:i', strtotime($st['show_time'])) ?></div>
-                                    <div class="st-hall"><?= sanitize($st['hall']) ?></div>
-                                    <div class="st-price"><?= formatPrice($st['price']) ?></div>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <?php $i++; endforeach; ?>
-                </div>
+                <!-- Showtime Container (AJAX) -->
+                <div id="showtime-container"></div>
 
                 <?php if (!isLoggedIn()): ?>
                 <div class="mt-4 p-3 d-flex align-items-center gap-2" style="background:var(--cb-section);border-radius:var(--cb-radius-sm);border:1px solid var(--cb-border)">

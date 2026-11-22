@@ -10,7 +10,7 @@ A simple, clean, and beginner-friendly cinema ticket booking web application ins
 - Register & Login with secure password hashing
 - Browse Now Showing & Coming Soon movies
 - Movie detail page with synopsis and showtimes
-- Select showtime by date tab
+- Select showtime by date tab (AJAX-powered without page reload)
 - Interactive visual seat map (click to select)
 - Real-time seat status: Available / Selected / Booked
 - Instant booking with booking confirmation ticket
@@ -39,11 +39,11 @@ Cinema/
 │   └── users.php             # Manage users
 │
 ├── ajax/                     # AJAX endpoints
-│   └── get_showtimes.php     # Returns showtimes JSON for a movie + date
+│   └── get_showtimes.php     # Returns showtimes JSON for a movie + date (with auth status)
 │
 ├── assets/
 │   ├── css/style.css         # Main stylesheet (dark blue theme)
-│   ├── js/main.js            # Seat selection logic + AJAX calls
+│   ├── js/main.js            # Seat selection logic + showtimes AJAX tabs + UI
 │   └── images/               # Movie poster images (place .jpg files here)
 │
 ├── booking/

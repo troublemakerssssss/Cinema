@@ -145,7 +145,7 @@ $comingSoon = $db->query("SELECT * FROM movies WHERE status = 'coming_soon' ORDE
             </div>
             <div class="col-6 col-md-3">
                 <div class="cb-feature-item">
-                    <div class="cb-feature-icon"><i class="bi bi-shield-check-fill"></i></div>
+                    <div class="cb-feature-icon"><i class="bi bi-shield-fill-check"></i></div>
                     <div>
                         <div class="feature-title">Secure Booking</div>
                         <div class="feature-desc">Safe &amp; reliable</div>
@@ -281,15 +281,27 @@ $comingSoon = $db->query("SELECT * FROM movies WHERE status = 'coming_soon' ORDE
                                  loading="lazy"
                                  width="300" height="450">
                             <div class="ribbon ribbon-soon">Coming Soon</div>
+                            <div class="poster-overlay">
+                                <a href="<?= BASE_URL ?>/movie-detail.php?id=<?= (int)$movie['id'] ?>"
+                                   class="btn btn-cb-secondary btn-sm w-100">
+                                    <i class="bi bi-info-circle me-1"></i>See Details
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <h6 class="card-title" title="<?= sanitize($movie['title']) ?>"><?= sanitize($movie['title']) ?></h6>
-                            <div class="card-meta mb-1">
+                            <div class="card-meta mb-2">
                                 <span class="cb-badge-genre"><?= sanitize(explode(',', $movie['genre'])[0]) ?></span>
                             </div>
-                            <div style="font-size:.78rem;color:var(--cb-muted)">
-                                <i class="bi bi-calendar me-1" style="color:var(--cb-text)"></i>
-                                <?= $movie['release_date'] ? date('d M Y', strtotime($movie['release_date'])) : 'TBA' ?>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="font-size:.78rem;color:var(--cb-muted)">
+                                    <i class="bi bi-calendar me-1" style="color:var(--cb-text)"></i>
+                                    <?= $movie['release_date'] ? date('d M Y', strtotime($movie['release_date'])) : 'TBA' ?>
+                                </span>
+                                <a href="<?= BASE_URL ?>/movie-detail.php?id=<?= (int)$movie['id'] ?>"
+                                   class="btn btn-cb-primary btn-sm py-1 px-2" style="font-size:.75rem">
+                                    See Details
+                                </a>
                             </div>
                         </div>
                     </div>
